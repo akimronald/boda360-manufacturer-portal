@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/render-api-bridge.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boda 360 | Manufacturer Portal (Hardware Provisioning & Cloud Oversight)</title>
+  <meta name="description"
+    content="Manufacturer & Administration Portal for Boda 360 IoT nodes. Batch generation, IMEI provisioning, global fleet management, and telematics server health.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230284c7'/%3E%3Cstop offset='100%25' stop-color='%2338bdf8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ccircle cx='15.5' cy='43' r='7.5' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Ccircle cx='15.5' cy='43' r='2' fill='%23fff'/%3E%3Ccircle cx='48.5' cy='43' r='7.5' fill='none' stroke='%23fff' stroke-width='4'/%3E%3Ccircle cx='48.5' cy='43' r='2' fill='%23fff'/%3E%3Cpath d='M15.5 43 L27 36' stroke='%23fff' stroke-width='3.6' stroke-linecap='round'/%3E%3Cpath d='M35.5 17.5 H41.5 L48.5 43' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9.5 26.5 H22.5 L26.5 29.5 C29 24 34 22 41.5 24 L43 28.5 L35.5 40.5 H26.5 L23.5 33 L11.5 30.5 Z' fill='%23fff'/%3E%3Cpath d='M43.5 22 L49 23.2 L47.8 27.5 L43 26.5 Z' fill='%23fff'/%3E%3C/svg%3E">
+
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Manufacturer Portal Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="theme-dark">
+
+  <!-- Primary Application Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-logo">
+        <div class="logo-icon mfg-logo">
+          <i class="fa-solid fa-microchip"></i>
+          <span class="pulse-beacon emerald"></span>
+        </div>
+        <div class="brand-titles">
+          <div class="brand-name">BODA 360 <span class="badge-role badge-mfg"><span class="badge-full">MANUFACTURER
+                PORTAL</span><span class="badge-short">MFG</span></span></div>
+        </div>
+      </div>
+      <div class="hub-location-tag">
+        <i class="fa-solid fa-microchip"></i> Hardware Telematics Center
+      </div>
+    </div>
+
+    <!-- Header Right Status & Profile -->
+    <div class="header-right">
+      <div class="system-time" id="system-time">
+        <i class="fa-regular fa-clock"></i> 00:00:00 EAT
+      </div>
+      <div class="connection-status">
+        <span class="status-dot"></span>
+        <span id="backend-status-text">MQTT CLUSTER: 99.98%</span>
+      </div>
+      <div class="user-pill">
+        <div class="user-avatar" style="background: linear-gradient(135deg, #059669, #10b981);">
+          <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <div class="user-info">
+          <span class="user-name">System Superadmin</span>
+          <span class="user-role" style="color: #10b981;">Hardware Engineering</span>
+        </div>
+        <button class="btn-logout" id="btn-mfg-logout" title="Log Out from Manufacturer Session" aria-label="Log Out"
+          style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#cbd5e1;cursor:pointer;padding:6px 9px;border-radius:8px;font-size:0.9rem;transition:all 0.2s;margin-left:6px;">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sub-Navigation Bar -->
+  <nav class="sub-nav-bar">
+    <div class="sub-nav-inner">
+      <button class="sub-nav-tab active" id="subtab-mfg-provision">
+        <i class="fa-solid fa-layer-group"></i> Hardware Batch Provisioning
+      </button>
+      <button class="sub-nav-tab" id="subtab-mfg-inventory">
+        <i class="fa-solid fa-server"></i> Global Device Fleet (<span id="badge-global-count">0</span>)
+      </button>
+      <button class="sub-nav-tab" id="subtab-mfg-ota">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Internet OTA Firmware
+      </button>
+      <button class="sub-nav-tab" id="subtab-mfg-health">
+        <i class="fa-solid fa-heart-pulse"></i> Telemetry & Server Health
+      </button>
+    </div>
+    <div class="portal-badge-indicator">
+      System Version: <strong style="color: #10b981;">v2.1.0-OTA</strong> &bull; Dual MCU:
+      <strong>LILYGO T-SIM7000G + ESP32-WROOM (SIM800L)</strong>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="app-main">
+
+    <!-- SCREEN 1: HARDWARE BATCH PROVISIONING -->
+    <section id="screen-mfg-provision" class="portal-screen active">
+      <div class="mfg-batch-layout">
+        <!-- Provisioning Form -->
+        <div class="panel-card">
+          <div class="terminal-header">
+            <div class="term-title">
+              <i class="fa-solid fa-microchip" style="color: #10b981;"></i>
+              Batch Generation & Key Generation
+            </div>
+            <span class="badge-role" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Factory Tool</span>
+          </div>
+          <p class="section-desc">
+            Generate cryptographically signed hardware batches with sequential IMEIs and pre-shared AES-256 keys for
+            flashing into ESP32 nodes.
+          </p>
+
+          <form id="form-provision-batch" class="styled-form">
+            <div class="form-group">
+              <label for="batch-code">Batch Identification Code: <span class="text-danger">*</span></label>
+              <input type="text" id="batch-code" class="form-control font-mono uppercase" value="BATCH-2026-UG01"
+                placeholder="e.g. BATCH-2026-UG01" required>
+            </div>
+
+            <div class="form-group">
+              <label for="batch-quantity">Target Quantity to Provision: <span class="text-danger">*</span></label>
+              <select id="batch-quantity" class="form-control" title="Target Quantity to Provision">
+                <option value="1">1 Hardware Node (Single Unit)</option>
+                <option value="5" selected>5 Hardware Nodes (Pilot Batch)</option>
+                <option value="10">10 Hardware Nodes (Standard Batch)</option>
+                <option value="25">25 Hardware Nodes (Bulk Production)</option>
+                <option value="50">50 Hardware Nodes (Mass Rollout)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="batch-hw-rev">Hardware Architecture Revision:</label>
+              <select id="batch-hw-rev" class="form-control" title="Hardware Architecture Revision">
+                <option value="ESP32-WROOM-32 v2.4 (SIM800L + NEO-6M)" selected>ESP32-WROOM-32 v2.4 (SIM800L Voice Call + NEO-6M GPS)</option>
+                <option value="ESP32 LILYGO T-SIM7000G">ESP32 LILYGO TTGO T-SIM7000G (SIM7000G + GNSS)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="batch-vendor-select">Batch Deployment Notes / Target Region:</label>
+              <input type="text" id="batch-vendor-select" class="form-control" value="Direct Customer Deployment Pool"
+                placeholder="e.g. Direct Customer Deployment Pool" title="Batch Deployment Notes or Target Region">
+            </div>
+
+            <div class="form-group">
+              <label for="batch-crypto-policy">Cryptographic Security Key Policy:</label>
+              <input type="text" id="batch-crypto-policy" class="form-control font-mono" value="AES-256-CBC with SHA-256 Handshake" readonly>
+            </div>
+
+            <div style="margin-top: 14px;">
+              <button type="submit" class="btn btn-emerald btn-lg btn-block" id="btn-submit-batch">
+                <i class="fa-solid fa-plus-circle"></i> Generate & Provision Hardware Batch
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Provisioning Output & History -->
+        <div class="panel-card" style="display: flex; flex-direction: column; gap: 12px;">
+          <div class="terminal-header">
+            <div class="term-title">
+              <i class="fa-solid fa-list-check" style="color: #00f2fe;"></i>
+              Factory Batch Execution Console
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span class="inv-pill">Deployed Bikes: <strong style="color: #10b981;" id="mfg-deployed-banner-count">0</strong></span>
+              <span class="inv-pill">Active Batches: <strong id="mfg-batches-count">0</strong></span>
+            </div>
+          </div>
+
+          <div class="stream-console" id="batch-console" style="height: 160px;">
+            <div class="log-line text-muted">[FACTORY READY] Syncing real hardware inventory from Boda 360 server...</div>
+            <div class="log-line text-success">[SYS] Cryptographic entropy generator initialized (256-bit).</div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+            <strong style="font-size: 0.85rem; color: #fff;">Production Batches:</strong>
+            <button class="btn btn-outline btn-xs" id="btn-export-csv">
+              <i class="fa-solid fa-file-csv"></i> Export Flashing CSV
+            </button>
+          </div>
+
+          <div class="table-responsive" style="max-height: 240px;">
+            <table class="styled-table" id="batches-table">
+              <thead>
+                <tr>
+                  <th>Batch ID</th>
+                  <th>Manufactured</th>
+                  <th>Deployed</th>
+                  <th>Hardware Rev</th>
+                  <th>Created Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="batches-tbody">
+                <!-- Populated dynamically from /api/manufacturer/batches -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: GLOBAL DEVICE FLEET INVENTORY -->
+    <section id="screen-mfg-inventory" class="portal-screen">
+      <div class="vendor-inventory-layout">
+        <div class="inv-header-bar">
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 700; color: #fff;">Global Hardware Fleet Inventory</h2>
+            <p style="font-size: 0.76rem; color: var(--text-muted);">
+              Live master database of all provisioned and customer-deployed telematics nodes.
+            </p>
+          </div>
+          <div class="inv-stats-pills">
+            <div class="inv-pill">Total Nodes: <strong id="lbl-total-mfg">0</strong></div>
+            <div class="inv-pill">Deployed (Customer Linked): <strong style="color: #10b981;" id="lbl-assigned-mfg">0</strong></div>
+            <div class="inv-pill">Reserve (Unassigned): <strong style="color: #fbbf24;" id="lbl-unassigned-mfg">0</strong></div>
+            <div class="inv-pill">Live Online: <strong style="color: #00f2fe;" id="lbl-online-mfg">0</strong></div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="styled-table" id="global-fleet-table">
+            <thead>
+              <tr>
+                <th>IMEI Number</th>
+                <th>Batch Code</th>
+                <th>Hardware Revision</th>
+                <th>Customer Owner</th>
+                <th>Bound Plate</th>
+                <th>Deployment &amp; Signal Status</th>
+                <th>Firmware</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="global-fleet-tbody">
+              <!-- Dynamically Populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2B: INTERNET OTA FIRMWARE ROLLOUT -->
+    <section id="screen-mfg-ota" class="portal-screen">
+      <div class="mfg-ota-layout">
+        <!-- Left Column: Upload Compiled .bin -->
+        <div class="panel-card">
+          <div class="terminal-header">
+            <div class="term-title">
+              <i class="fa-solid fa-cloud-arrow-up" style="color: #00f2fe;"></i>
+              Internet OTA Binary Uploader
+            </div>
+            <span class="badge-role" style="background: rgba(0, 242, 254, 0.14); color: #00f2fe;">Dual MCU</span>
+          </div>
+          <p class="section-desc">
+            Export your compiled <code>.bin</code> in Arduino IDE (<strong>Sketch &rarr; Export Compiled Binary</strong>)
+            using partition scheme <code>Minimal SPIFFS (1.9MB APP with OTA)</code>, upload for either ESP32 board, and
+            push updates over the Internet via MQTT + HTTP/GPRS.
+          </p>
+
+          <form id="form-upload-ota" class="styled-form">
+            <div class="form-group">
+              <label for="ota-board-type">Target Microcontroller Board: <span class="text-danger">*</span></label>
+              <select id="ota-board-type" class="form-control" title="Target Microcontroller Board" required>
+                <option value="esp32_wroom">ESP32-WROOM-32 (SIM800L Voice Call + NEO-6M GPS)</option>
+                <option value="lilygo_tsim7000g">ESP32 LILYGO T-SIM7000G (SIM7000G + Integrated GNSS)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="ota-version">Firmware Semantic Version: <span class="text-danger">*</span></label>
+              <input type="text" id="ota-version" class="form-control font-mono" value="2.1.0" placeholder="e.g. 2.1.0" required>
+            </div>
+
+            <div class="form-group">
+              <label for="ota-bin-file">Compiled ESP32 Firmware Binary (<code>.bin</code>):</label>
+              <input type="file" id="ota-bin-file" class="form-control" accept=".bin,application/octet-stream"
+                title="Select compiled ESP32 firmware .bin file">
+            </div>
+
+            <div class="form-group">
+              <label for="ota-public-url">Optional Public Internet URL (Cloudflare Tunnel / GitHub Release for Cellular SIM):</label>
+              <input type="url" id="ota-public-url" class="form-control font-mono"
+                placeholder="https://your-tunnel-or-github.com/api/ota/download/esp32_wroom">
+            </div>
+
+            <div class="form-group">
+              <label for="ota-notes">Release Notes / Changelog:</label>
+              <input type="text" id="ota-notes" class="form-control"
+                placeholder="Describe changes in this firmware release"
+                value="SIM800L direct tamper voice call + NEO-6M GPS + Internet OTA engine">
+            </div>
+
+            <div style="margin-top: 8px;">
+              <button type="submit" class="btn btn-emerald btn-lg btn-block" id="btn-upload-ota">
+                <i class="fa-solid fa-upload"></i> Stage Firmware Binary on OTA Server
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right Column: Active Builds, Fleet Rollout & Live OTA Console -->
+        <div class="panel-card" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="terminal-header">
+            <div class="term-title">
+              <i class="fa-solid fa-satellite-dish" style="color: #10b981;"></i>
+              Wireless Over-The-Air Rollout Control (MQTT + HTTP/GPRS)
+            </div>
+            <span class="inv-pill">Server Origin: <strong id="ota-server-origin" class="font-mono">Detecting...</strong></span>
+          </div>
+
+          <!-- Dual Board Status Cards -->
+          <div class="ota-board-cards-grid">
+            <!-- Card 1: ESP32-WROOM + SIM800L + NEO-6M -->
+            <div class="ota-board-card">
+              <div class="ota-board-card-header">
+                <div class="ota-board-title">
+                  <i class="fa-solid fa-phone-volume" style="color: #10b981;"></i>
+                  ESP32-WROOM (SIM800L + NEO-6M)
+                </div>
+                <span class="badge-role font-mono" id="ota-ver-wroom"
+                  style="background: rgba(16, 185, 129, 0.16); color: #10b981;">No .bin yet</span>
+              </div>
+              <div class="ota-meta-row"><span>Board Key:</span><strong class="font-mono">esp32_wroom</strong></div>
+              <div class="ota-meta-row"><span>Binary Size:</span><strong class="font-mono" id="ota-size-wroom">--</strong></div>
+              <div class="ota-meta-row"><span>MD5 Checksum:</span><strong class="font-mono" id="ota-md5-wroom">--</strong></div>
+              <div class="ota-meta-row"><span>Stream Endpoint:</span><strong class="font-mono" id="ota-url-wroom" style="font-size:0.68rem;">/api/ota/download/esp32_wroom</strong></div>
+              <button class="btn btn-emerald btn-sm btn-block" data-trigger-board="esp32_wroom" style="margin-top:4px;">
+                <i class="fa-solid fa-bolt"></i> Push OTA to All ESP32-WROOM Bikes
+              </button>
+            </div>
+
+            <!-- Card 2: ESP32 LILYGO T-SIM7000G -->
+            <div class="ota-board-card">
+              <div class="ota-board-card-header">
+                <div class="ota-board-title">
+                  <i class="fa-solid fa-microchip" style="color: #00f2fe;"></i>
+                  ESP32 LILYGO T-SIM7000G
+                </div>
+                <span class="badge-role font-mono" id="ota-ver-lilygo"
+                  style="background: rgba(0, 242, 254, 0.16); color: #00f2fe;">No .bin yet</span>
+              </div>
+              <div class="ota-meta-row"><span>Board Key:</span><strong class="font-mono">lilygo_tsim7000g</strong></div>
+              <div class="ota-meta-row"><span>Binary Size:</span><strong class="font-mono" id="ota-size-lilygo">--</strong></div>
+              <div class="ota-meta-row"><span>MD5 Checksum:</span><strong class="font-mono" id="ota-md5-lilygo">--</strong></div>
+              <div class="ota-meta-row"><span>Stream Endpoint:</span><strong class="font-mono" id="ota-url-lilygo" style="font-size:0.68rem;">/api/ota/download/lilygo_tsim7000g</strong></div>
+              <button class="btn btn-outline btn-sm btn-block" data-trigger-board="lilygo_tsim7000g" style="margin-top:4px; border-color:#00f2fe; color:#00f2fe;">
+                <i class="fa-solid fa-tower-cell"></i> Push OTA to All LILYGO Bikes
+              </button>
+            </div>
+          </div>
+
+          <!-- Single Target IMEI Trigger -->
+          <div class="ota-single-target-bar">
+            <strong style="font-size: 0.76rem; color: #fff;"><i class="fa-solid fa-crosshairs" style="color:#fbbf24;"></i> Single Bike OTA:</strong>
+            <select id="ota-single-board" class="form-control" title="Select target microcontroller board" aria-label="Target microcontroller board" style="padding: 5px 8px; font-size: 0.76rem; width: auto;">
+              <option value="esp32_wroom">ESP32-WROOM (SIM800L)</option>
+              <option value="lilygo_tsim7000g">LILYGO T-SIM7000G</option>
+            </select>
+            <input type="text" id="ota-target-imei" class="form-control font-mono" value="865421045981201"
+              title="Target 15-digit IMEI" aria-label="Target 15-digit IMEI"
+              placeholder="Target IMEI" style="padding: 5px 10px; font-size: 0.78rem; width: 175px;">
+            <label style="display:flex;align-items:center;gap:5px;font-size:0.74rem;color:var(--text-secondary);cursor:pointer;">
+              <input type="checkbox" id="ota-force-flag" checked> Force re-flash
+            </label>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-trigger-single-ota">
+              <i class="fa-solid fa-paper-plane"></i> Flash Target IMEI
+            </button>
+          </div>
+
+          <!-- Live OTA Rollout Console -->
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="font-size: 0.82rem; color: #fff;"><i class="fa-solid fa-terminal" style="color:#10b981;"></i> Live Internet OTA Rollout & Hardware ACK Stream:</strong>
+            <button type="button" class="btn btn-outline btn-xs" id="btn-clear-ota-log">
+              <i class="fa-solid fa-trash-can"></i> Clear
+            </button>
+          </div>
+          <div class="stream-console" id="ota-rollout-console" style="flex: 1; min-height: 155px;">
+            <div class="log-line text-muted">[OTA SERVER READY] Listening on MQTT boda/ota/broadcast &amp; boda/+/ack...</div>
+            <div class="log-line text-success">[DUAL-MCU] Profiles active: esp32_wroom (SIM800L Voice + NEO-6M) &amp; lilygo_tsim7000g</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: TELEMETRY & SERVER HEALTH -->
+    <section id="screen-mfg-health" class="portal-screen">
+      <div class="mfg-health-layout">
+        <!-- 4 Top KPIs -->
+        <div class="health-kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon text-success"><i class="fa-solid fa-motorcycle"></i></div>
+            <div class="kpi-num" id="kpi-deployed-nodes">0</div>
+            <div class="kpi-label">Devices Deployed (Customer Bikes)</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon text-cyan"><i class="fa-solid fa-tower-broadcast"></i></div>
+            <div class="kpi-num" id="kpi-online-nodes">0</div>
+            <div class="kpi-label">Active Nodes Online Now</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon text-amber"><i class="fa-solid fa-microchip"></i></div>
+            <div class="kpi-num" id="kpi-total-provisioned">0</div>
+            <div class="kpi-label">Total Provisioned Hardware</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon text-purple"><i class="fa-solid fa-users"></i></div>
+            <div class="kpi-num" id="kpi-customers-count">0</div>
+            <div class="kpi-label">Registered Customers</div>
+          </div>
+        </div>
+
+        <!-- Infrastructure Clusters -->
+        <div class="health-clusters-grid">
+          <div class="cluster-card">
+            <div class="cluster-title">
+              <i class="fa-solid fa-network-wired" style="color: #00f2fe;"></i>
+              Telematics Messaging Broker (Mosquitto MQTT)
+            </div>
+            <div class="cluster-status-row">
+              <span>TCP Broker Port:</span>
+              <strong class="font-mono">1883 (Standard) / 8883 (MQTTS TLS)</strong>
+            </div>
+            <div class="cluster-status-row">
+              <span>QoS Level Enforced:</span>
+              <strong class="font-mono text-success">QoS 1 (At Least Once Delivery)</strong>
+            </div>
+            <div class="cluster-status-row">
+              <span>Security Auth Layer:</span>
+              <strong class="font-mono">Pre-Shared Certificate & Token Auth</strong>
+            </div>
+            <div class="cluster-status-row">
+              <span>Telemetry Topic:</span>
+              <strong class="font-mono text-cyan">boda/+/telemetry</strong>
+            </div>
+            <div class="cluster-status-row">
+              <span>Command Topic:</span>
+              <strong class="font-mono text-danger">boda/+/command/relay</strong>
+            </div>
+          </div>
+
+          <div class="cluster-card">
+            <div class="cluster-title">
+              <i class="fa-solid fa-database" style="color: #10b981;"></i>
+              Relational Storage & Gateway Bridges
+            </div>
+            <div class="cluster-status-row">
+              <span>PostgreSQL Connection Pool:</span>
+              <strong class="font-mono text-success">10 / 20 Active Connections</strong>
+            </div>
+            <div class="cluster-status-row">
+              <span>MTN Uganda USSD Gateway:</span>
+              <strong class="font-mono text-success">Active (SMPP Port 2775)</strong>
+            </div>
+            <div class="cluster-status-row">
+              <span>Airtel Money Billing Webhook:</span>
+              <strong class="font-mono text-success">Verified & Operating</strong>
+            </div>
+            <div class="cluster-status-row">
+              <span>Uganda Police Dispatch API:</span>
+              <strong class="font-mono">Ready & Authenticated</strong>
+            </div>
+            <div class="cluster-status-row">
+              <span>Cloud Backup Frequency:</span>
+              <strong class="font-mono">Every 6 Hours (Encrypted Tarball)</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Telemetry Stream Inspector Console -->
+        <div class="panel-card stream-inspector-card">
+          <div class="terminal-header">
+            <div class="term-title">
+              <i class="fa-solid fa-terminal" style="color: #10b981;"></i>
+              Live MQTT Telemetry Packet Stream Inspector (Uganda Central)
+            </div>
+            <button class="btn btn-outline btn-xs" id="btn-clear-stream">
+              <i class="fa-solid fa-trash-can"></i> Clear Stream
+            </button>
+          </div>
+
+          <div class="stream-console" id="live-telemetry-stream">
+            <!-- Streaming Packets Added Dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Manufacturer Portal Controller -->
+  <script src="js/app.js"></script>
+</body>
+
+</html>
